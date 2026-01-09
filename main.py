@@ -24,6 +24,10 @@ async def create_student(student: Student):
     result = await server.student_manager.create_student(data)
     return result
 
+@app.get("/api/v1/students", response_model=list[Student])
+async def get_students():
+    return await server.student_manager.get_all_students()
+
 @app.get("/api/v1/students/{student_id}", response_model=Student)
 async def get_student(student_id: str):
     student = await server.student_manager.get_student(student_id)

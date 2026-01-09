@@ -33,6 +33,7 @@ class StudentHubMCPServer:
          def __init__(self, repo): self.repo = repo
          async def create_student(self, data): return await self.repo.create(data)
          async def get_student(self, id): return await self.repo.get_by_id(id)
+         async def get_all_students(self): return await self.repo.get_all()
     
     @property
     def student_manager(self):
