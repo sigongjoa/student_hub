@@ -1,64 +1,95 @@
 {
-  "run_date": "2026-01-09 14:15:59",
+  "run_date": "2026-01-09 14:54:42",
   "student": {
-    "id": "student_123",
+    "id": "1de5f19a-2366-43c8-bcdd-ac2da8973b35",
     "name": "Test Student",
     "grade": 10,
     "school_code": "SCH_001"
   },
   "profile": {
-    "student_id": "student_123",
+    "student_id": "1de5f19a-2366-43c8-bcdd-ac2da8973b35",
     "name": "Test Student",
-    "grade": 10,
-    "school_code": "SCH_001",
-    "created_at": "2026-01-09T14:15:59.339980",
+    "basic_info": {
+      "name": "Test Student",
+      "grade": 10,
+      "school_code": null
+    },
     "mastery_summary": {
       "average": 0.75,
-      "strong_concepts": [
-        "concept_A"
-      ],
-      "weak_concepts": [
-        "concept_B"
-      ],
       "total_attempts": 150,
-      "recent_trend": "stable"
+      "recent_trend": "increasing"
     },
     "heatmap_data": {
-      "concept_A": 0.8,
-      "concept_B": 0.4
+      "Algebra": 0.8,
+      "Geometry": 0.6
     },
     "recent_activities": [
       {
-        "type": "quiz",
-        "score": 80,
-        "date": "2025-01-01"
+        "date": "2024-03-20",
+        "type": "problem_solving",
+        "score": 85
+      },
+      {
+        "date": "2024-03-19",
+        "type": "video_watching",
+        "score": 100
       }
     ],
-    "total_study_hours": 12.5,
-    "last_active_date": "2025-01-08"
+    "latest_reports": [],
+    "generated_at": "8543.894474649"
   },
   "intervention": {
-    "intervention_id": "int_student_123_1767935759",
-    "student_id": "student_123",
-    "intervention_type": "concept_review",
+    "id": "23d58d3c-6dfb-4f55-9496-d30fb4888817",
+    "student_id": "1de5f19a-2366-43c8-bcdd-ac2da8973b35",
+    "intervention_type": "auto",
+    "type": "auto",
+    "weak_areas": [
+      {
+        "concept": "Linear Algebra",
+        "current_mastery": 0.4,
+        "target_mastery": 0.8,
+        "priority": 1
+      },
+      {
+        "concept": "Quadratic Equations",
+        "current_mastery": 0.5,
+        "target_mastery": 0.8,
+        "priority": 2
+      }
+    ],
+    "learning_path": [
+      {
+        "step": 1,
+        "activity": "concept_review",
+        "concept": "Linear Algebra",
+        "problem_set_id": null,
+        "params": null,
+        "estimated_duration": 600
+      },
+      {
+        "step": 2,
+        "activity": "practice_problems",
+        "concept": null,
+        "problem_set_id": "ps_123",
+        "params": null,
+        "estimated_duration": 1200
+      }
+    ],
+    "status": "active",
+    "created_at": "2026-01-09 14:54:42.021175",
+    "trigger": "manual",
+    "reason": "Testing intervention creation",
     "actions": [
       {
         "action_type": "send_video",
-        "params": "{'concept_id': 'concept_A', 'video_type': 'review'}",
-        "scheduled_at": null,
-        "status": "pending"
+        "status": "pending",
+        "params": "{'video_id': 'vid_123'}"
       },
       {
         "action_type": "generate_problems",
-        "params": "{'mcp_server': 'gen-node-mcp', 'tool': 'generate_picket_problem', 'tool_params': {'student_id': 'student_123', 'target_concept': 'concept_A', 'difficulty_adjustment': -0.2}}",
-        "scheduled_at": null,
-        "status": "pending"
+        "status": "pending",
+        "params": "{'count': 5}"
       }
-    ],
-    "created_at": "2026-01-09T14:15:59.340282",
-    "executed_at": null,
-    "result": null,
-    "trigger": "manual",
-    "reason": "Testing intervention creation"
+    ]
   }
 }

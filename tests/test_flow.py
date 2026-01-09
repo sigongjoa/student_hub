@@ -11,9 +11,8 @@ sys.path.append(ROOT_DIR)
 sys.path.append(COMMON_DIR)
 
 from node0_student_hub.mcp_server import StudentHubMCPServer
-from node0_student_hub.models.schemas import (
-    GetUnifiedProfileInput, CreateInterventionInput, InterventionType
-)
+from node0_student_hub.app.schemas.intervention import CreateInterventionInput, InterventionType
+from node0_student_hub.app.schemas.profile import GetUnifiedProfileInput
 # Lazy import to ensure path is added first
 try:
     from mathesis_core.export.pdf_generator import GenericTypstPDFGenerator
@@ -35,8 +34,10 @@ async def main():
 
     # 1. Create a Student
     print("\n1. Creating Student...")
+    import uuid
+    student_id = str(uuid.uuid4())
     student_data = {
-        "id": "student_123",
+        "id": student_id,
         "name": "Test Student",
         "grade": 10,
         "school_code": "SCH_001",
@@ -55,7 +56,7 @@ async def main():
     # 2. Get Unified Profile
     print("\n2. Fetching Unified Profile...")
     profile_input = GetUnifiedProfileInput(
-        student_id="student_123",
+        student_id=student_id,
         include_sections=["basic", "mastery", "activities"]
     )
     profile = await server.get_unified_profile(profile_input)
@@ -68,7 +69,7 @@ async def main():
     # 3. Create Intervention
     print("\n3. Creating Intervention...")
     intervention_input = CreateInterventionInput(
-        student_id="student_123",
+        student_id=student_id,
         trigger="manual",
         intervention_type=InterventionType.CONCEPT_REVIEW,
         reason="Testing intervention creation",
@@ -76,17 +77,25 @@ async def main():
     )
     intervention = await server.create_learning_intervention(intervention_input)
     print("Intervention Created:")
-    print(f"- ID: {intervention.intervention_id}")
+    print(f"- ID: {intervention.id}")
 
-    # Serialize Pydantic model for report
-    intervention_dict = intervention.dict()
-    # Convert datetime to string for JSON serialization
-    if 'created_at' in intervention_dict:
-        intervention_dict['created_at'] = str(intervention_dict['created_at'])
-    
-    # Manually add input fields for the report
-    intervention_dict['trigger'] = intervention_input.trigger
-    intervention_dict['reason'] = intervention_input.reason
+    # Serialize SQLAlchemy model for report
+    intervention_dict = {
+        "id": str(intervention.id),
+        "student_id": str(intervention.student_id),
+        "intervention_type": intervention.type,
+        "type": intervention.type, # Keep both for safety
+        "weak_areas": intervention.weak_areas,
+        "learning_path": intervention.learning_path,
+        "status": intervention.status,
+        "created_at": str(intervention.created_at)
+    }
+    # For compatibility/extra fields that are not in DB columns but might be attached dynamically or need to be added
+    # In my Service impl, I passed 'trigger'/'reason'/'actions' to repo.create, and my mock repo sets attributes.
+    # So I can access them from the object if they were set.
+    intervention_dict['trigger'] = getattr(intervention, 'trigger', intervention_input.trigger)
+    intervention_dict['reason'] = getattr(intervention, 'reason', intervention_input.reason)
+    intervention_dict['actions'] = getattr(intervention, 'actions', [])
     
     # Stringify params for report rendering
     if 'actions' in intervention_dict:
