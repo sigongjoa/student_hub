@@ -23,6 +23,10 @@ from app.services.learning_path_service import (
     LearningPathService,
     LearningPathRequest
 )
+from app.services.exam_prep_service import (
+    ExamPrepService,
+    ExamPrepRequest
+)
 from app.mcp.manager import MCPClientManager
 from app.db.session import get_db_session
 
@@ -168,8 +172,61 @@ class WorkflowServiceServicer(student_hub_pb2_grpc.WorkflowServiceServicer):
         request: workflows_pb2.ExamPrepRequest,
         context: grpc.aio.ServicerContext
     ) -> workflows_pb2.ExamPrepResponse:
-        """시험 준비 (향후 구현)"""
-        await context.abort(grpc.StatusCode.UNIMPLEMENTED, "Not implemented yet")
+        """시험 준비"""
+        try:
+            logger.info(f"PrepareExam called for student {request.student_id}, exam: {request.exam_date}")
+
+            async with get_db_session() as db:
+                service = ExamPrepService(self.mcp, db)
+
+                service_request = ExamPrepRequest(
+                    student_id=request.student_id,
+                    exam_date=request.exam_date,
+                    school_id=request.school_id,
+                    curriculum_paths=list(request.curriculum_paths)
+                )
+
+                result = await service.prepare_exam(service_request)
+
+                # Protobuf 메시지로 변환
+                return workflows_pb2.ExamPrepResponse(
+                    workflow_id=result.workflow_id,
+                    two_week_plan=workflows_pb2.StudyPlan(
+                        days=[
+                            workflows_pb2.DailyTask(
+                                day_number=task.day_number,
+                                date=task.date,
+                                concepts_to_review=task.concepts_to_review,
+                                practice_problems=[
+                                    workflows_pb2.Question(
+                                        id=p.get("id", ""),
+                                        content=p.get("content", ""),
+                                        difficulty=p.get("difficulty", "medium"),
+                                        concepts=p.get("concepts", [])
+                                    )
+                                    for p in task.practice_problems
+                                ],
+                                anki_reviews=task.anki_reviews
+                            )
+                            for task in result.two_week_plan
+                        ]
+                    ),
+                    practice_problems=[
+                        workflows_pb2.Question(
+                            id=p.get("id", ""),
+                            content=p.get("content", ""),
+                            difficulty=p.get("difficulty", "medium"),
+                            concepts=p.get("concepts", [])
+                        )
+                        for p in result.practice_problems
+                    ],
+                    focus_concepts=result.focus_concepts,
+                    mock_exam_pdf_url=result.mock_exam_pdf_url
+                )
+
+        except Exception as e:
+            logger.error(f"PrepareExam failed: {e}", exc_info=True)
+            await context.abort(grpc.StatusCode.INTERNAL, str(e))
 
     async def GetWorkflowStatus(
         self,

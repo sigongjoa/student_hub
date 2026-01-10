@@ -204,6 +204,45 @@ class MockMCPManager:
                 "current_mastery": mastery
             }
 
+        # Exam Prep 관련 응답
+        if node == "school-info" and tool == "get_exam_scope":
+            school_id = params.get("school_id")
+            curriculum_paths = params.get("curriculum_paths", [])
+
+            return {
+                "school_id": school_id,
+                "exam_scope": {
+                    "curriculum_paths": curriculum_paths,
+                    "topics": ["도함수", "적분", "극한", "미분", "삼각함수"],
+                    "exam_format": "객관식 20문제, 주관식 5문제",
+                    "difficulty_distribution": {
+                        "easy": 0.3,
+                        "medium": 0.5,
+                        "hard": 0.2
+                    }
+                }
+            }
+
+        if node == "lab-node" and tool == "get_weak_concepts":
+            # 시험 범위 내 약점 개념 반환
+            return {
+                "weak_concepts": [
+                    {"concept": "도함수", "accuracy": 0.45, "attempts": 20},
+                    {"concept": "극한", "accuracy": 0.50, "attempts": 15},
+                    {"concept": "적분", "accuracy": 0.35, "attempts": 10}
+                ]
+            }
+
+        if node == "q-metrics" and tool == "generate_mock_exam":
+            import uuid
+            from datetime import datetime
+            student_id = params.get("student_id")
+            return {
+                "pdf_url": f"https://storage.mathesis.com/mock_exams/{student_id}_{uuid.uuid4().hex[:8]}.pdf",
+                "question_count": 25,
+                "generated_at": datetime.now().isoformat()
+            }
+
         return {"status": "mock_response"}
 
     def called(self, node: str, tool: str) -> bool:
