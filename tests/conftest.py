@@ -140,6 +140,70 @@ class MockMCPManager:
                 "ease_factor": 2.5
             }
 
+        # Learning Path 관련 응답
+        if node == "lab-node" and tool == "get_concept_heatmap":
+            return {
+                "heatmap": {
+                    "극한": 0.45,  # 약점
+                    "도함수": 0.55,  # 약점
+                    "적분": 0.35,  # 매우 약함
+                    "미분": 0.65,
+                    "삼각함수": 0.80
+                }
+            }
+
+        if node == "logic-engine" and tool == "get_prerequisite_graph":
+            # DAG: 극한 → 도함수 → 적분
+            #      극한 → 미분
+            return {
+                "graph": {
+                    "극한": {
+                        "prerequisites": [],
+                        "dependents": ["도함수", "미분"]
+                    },
+                    "도함수": {
+                        "prerequisites": ["극한"],
+                        "dependents": ["적분", "미분"]
+                    },
+                    "미분": {
+                        "prerequisites": ["극한", "도함수"],
+                        "dependents": []
+                    },
+                    "적분": {
+                        "prerequisites": ["도함수"],
+                        "dependents": []
+                    },
+                    "삼각함수": {
+                        "prerequisites": [],
+                        "dependents": []
+                    }
+                }
+            }
+
+        if node == "q-dna" and tool == "estimate_learning_time":
+            concept = params.get("concept")
+            mastery = params.get("current_mastery", 0.5)
+
+            # BKT 숙련도 기반 학습 시간 추정
+            # 낮은 숙련도 = 더 많은 시간 필요
+            base_hours = {
+                "극한": 4,
+                "도함수": 6,
+                "적분": 8,
+                "미분": 5,
+                "삼각함수": 3
+            }.get(concept, 4)
+
+            # 숙련도가 낮을수록 시간 증가
+            adjustment = (1.0 - mastery) * 2
+            estimated_hours = int(base_hours + adjustment)
+
+            return {
+                "concept": concept,
+                "estimated_hours": estimated_hours,
+                "current_mastery": mastery
+            }
+
         return {"status": "mock_response"}
 
     def called(self, node: str, tool: str) -> bool:

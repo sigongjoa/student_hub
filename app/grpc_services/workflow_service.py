@@ -19,6 +19,10 @@ from app.services.error_review_service import (
     ErrorReviewService,
     ErrorReviewRequest
 )
+from app.services.learning_path_service import (
+    LearningPathService,
+    LearningPathRequest
+)
 from app.mcp.manager import MCPClientManager
 from app.db.session import get_db_session
 
@@ -116,8 +120,40 @@ class WorkflowServiceServicer(student_hub_pb2_grpc.WorkflowServiceServicer):
         request: workflows_pb2.LearningPathRequest,
         context: grpc.aio.ServicerContext
     ) -> workflows_pb2.LearningPathResponse:
-        """개인화 학습 경로 생성 (향후 구현)"""
-        await context.abort(grpc.StatusCode.UNIMPLEMENTED, "Not implemented yet")
+        """개인화 학습 경로 생성"""
+        try:
+            logger.info(f"GenerateLearningPath called for student {request.student_id}, target: {request.target_concept}")
+
+            async with get_db_session() as db:
+                service = LearningPathService(self.mcp, db)
+
+                service_request = LearningPathRequest(
+                    student_id=request.student_id,
+                    target_concept=request.target_concept,
+                    days=request.days
+                )
+
+                result = await service.generate_learning_path(service_request)
+
+                # Protobuf 메시지로 변환
+                return workflows_pb2.LearningPathResponse(
+                    workflow_id=result.workflow_id,
+                    learning_path=[
+                        workflows_pb2.PathNode(
+                            concept=node.concept,
+                            order=node.order,
+                            estimated_hours=node.estimated_hours,
+                            prerequisites=node.prerequisites
+                        )
+                        for node in result.learning_path
+                    ],
+                    total_estimated_hours=result.total_estimated_hours,
+                    daily_tasks=result.daily_tasks
+                )
+
+        except Exception as e:
+            logger.error(f"GenerateLearningPath failed: {e}", exc_info=True)
+            await context.abort(grpc.StatusCode.INTERNAL, str(e))
 
     async def GetClassAnalytics(
         self,
