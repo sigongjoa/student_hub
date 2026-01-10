@@ -18,14 +18,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# Placeholder servicers (will be implemented in next phase)
+from app.grpc_services.workflow_service import WorkflowServiceServicer
+
+
+# Placeholder for StudentHubService (will be implemented later)
 class StudentHubServiceServicer(student_hub_pb2_grpc.StudentHubServiceServicer):
-    """학생 관리 서비스"""
-    pass
-
-
-class WorkflowServiceServicer(student_hub_pb2_grpc.WorkflowServiceServicer):
-    """워크플로우 서비스"""
+    """학생 관리 서비스 (향후 구현)"""
     pass
 
 
