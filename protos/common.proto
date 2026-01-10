@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package student_hub;
+
+// 공통 에러 코드
+enum ErrorCode {
+  OK = 0;
+  INVALID_ARGUMENT = 1;
+  NOT_FOUND = 2;
+  INTERNAL_ERROR = 3;
+  MCP_CALL_FAILED = 4;
+  DATABASE_ERROR = 5;
+}
+
+// 공통 상태
+message Status {
+  ErrorCode code = 1;
+  string message = 2;
+}

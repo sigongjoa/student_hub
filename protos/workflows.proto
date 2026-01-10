@@ -1,0 +1,173 @@
+syntax = "proto3";
+
+package student_hub;
+
+// Weekly Diagnostic 워크플로우
+message WeeklyDiagnosticRequest {
+  string student_id = 1;
+  string curriculum_path = 2;
+  bool include_weak_concepts = 3;
+}
+
+message WeeklyDiagnosticResponse {
+  string workflow_id = 1;
+  string session_id = 2;
+  repeated Question questions = 3;
+  repeated string weak_concepts = 4;
+  int32 total_estimated_time_minutes = 5;
+  string started_at = 6;
+}
+
+// Error Review 워크플로우
+message ErrorReviewRequest {
+  string student_id = 1;
+  string question_id = 2;
+  string student_answer = 3;
+  string correct_answer = 4;
+}
+
+message ErrorReviewResponse {
+  string error_note_id = 1;
+  string next_review_date = 2;
+  int32 anki_interval_days = 3;
+  ErrorAnalysis analysis = 4;
+}
+
+// Learning Path 워크플로우
+message LearningPathRequest {
+  string student_id = 1;
+  string target_concept = 2;
+  int32 days = 3;
+}
+
+message LearningPathResponse {
+  string workflow_id = 1;
+  repeated PathNode learning_path = 2;
+  int32 total_estimated_hours = 3;
+  map<string, int32> daily_tasks = 4;
+}
+
+// Class Analytics 워크플로우
+message ClassAnalyticsRequest {
+  string class_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+}
+
+message ClassAnalyticsResponse {
+  string class_id = 1;
+  ClassSummary summary = 2;
+  repeated StudentRisk at_risk_students = 3;
+  repeated ConceptGap common_weaknesses = 4;
+  Heatmap class_heatmap = 5;
+}
+
+// Exam Prep 워크플로우
+message ExamPrepRequest {
+  string student_id = 1;
+  string exam_date = 2;
+  string school_id = 3;
+  repeated string curriculum_paths = 4;
+}
+
+message ExamPrepResponse {
+  string workflow_id = 1;
+  StudyPlan two_week_plan = 2;
+  repeated Question practice_problems = 3;
+  repeated string focus_concepts = 4;
+  string mock_exam_pdf_url = 5;
+}
+
+// 워크플로우 상태
+message GetWorkflowStatusRequest {
+  string workflow_id = 1;
+}
+
+message WorkflowStatusResponse {
+  string workflow_id = 1;
+  string status = 2;  // in_progress, completed, failed
+  string progress_percentage = 3;
+  string error_message = 4;
+  string completed_at = 5;
+}
+
+// 공통 메시지
+message Question {
+  string id = 1;
+  string content = 2;
+  string difficulty = 3;
+  repeated string concepts = 4;
+}
+
+message PathNode {
+  string concept = 1;
+  int32 order = 2;
+  int32 estimated_hours = 3;
+  repeated string prerequisites = 4;
+}
+
+message ErrorAnalysis {
+  string misconception = 1;
+  string root_cause = 2;
+  repeated string related_concepts = 3;
+}
+
+message ClassSummary {
+  int32 total_students = 1;
+  float average_accuracy = 2;
+  int32 active_students = 3;
+  int32 at_risk_count = 4;
+}
+
+message StudentRisk {
+  string student_id = 1;
+  string name = 2;
+  float risk_score = 3;
+  repeated string weak_concepts = 4;
+}
+
+message ConceptGap {
+  string concept = 1;
+  float class_average_accuracy = 2;
+  int32 struggling_count = 3;
+}
+
+message Heatmap {
+  repeated HeatmapCell cells = 1;
+}
+
+message HeatmapCell {
+  string concept_path = 1;
+  float accuracy = 2;
+  int32 attempts = 3;
+}
+
+message StudyPlan {
+  repeated DailyTask days = 1;
+}
+
+message DailyTask {
+  int32 day_number = 1;
+  string date = 2;
+  repeated string concepts_to_review = 3;
+  repeated Question practice_problems = 4;
+  int32 anki_reviews = 5;
+}
+
+message MasteryProfile {
+  map<string, float> concept_scores = 1;
+}
+
+message ActivitySummary {
+  int32 total_attempts = 1;
+  int32 total_correct = 2;
+  float overall_accuracy = 3;
+  int32 active_days = 4;
+}
+
+message ErrorNote {
+  string id = 1;
+  string question_id = 2;
+  string created_at = 3;
+  string next_review = 4;
+}

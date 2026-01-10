@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package student_hub;
+
+import "workflows.proto";
+
+// Student Hub 메인 서비스
+service StudentHubService {
+  // 학생 관리
+  rpc CreateStudent(CreateStudentRequest) returns (StudentResponse);
+  rpc GetStudent(GetStudentRequest) returns (StudentResponse);
+  rpc ListStudents(ListStudentsRequest) returns (ListStudentsResponse);
+  rpc GetUnifiedProfile(GetUnifiedProfileRequest) returns (UnifiedProfileResponse);
+}
+
+// 워크플로우 서비스
+service WorkflowService {
+  // 5가지 워크플로우
+  rpc StartWeeklyDiagnostic(WeeklyDiagnosticRequest) returns (WeeklyDiagnosticResponse);
+  rpc StartErrorReview(ErrorReviewRequest) returns (ErrorReviewResponse);
+  rpc GenerateLearningPath(LearningPathRequest) returns (LearningPathResponse);
+  rpc GetClassAnalytics(ClassAnalyticsRequest) returns (ClassAnalyticsResponse);
+  rpc PrepareExam(ExamPrepRequest) returns (ExamPrepResponse);
+
+  // 워크플로우 상태 조회
+  rpc GetWorkflowStatus(GetWorkflowStatusRequest) returns (WorkflowStatusResponse);
+}
+
+// 메시지 정의
+message CreateStudentRequest {
+  string name = 1;
+  int32 grade = 2;
+  string school_id = 3;
+}
+
+message StudentResponse {
+  string id = 1;
+  string name = 2;
+  int32 grade = 3;
+  string school_id = 4;
+  string created_at = 5;
+}
+
+message GetStudentRequest {
+  string student_id = 1;
+}
+
+message ListStudentsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string school_id = 3;
+}
+
+message ListStudentsResponse {
+  repeated StudentResponse students = 1;
+  int32 total = 2;
+}
+
+message GetUnifiedProfileRequest {
+  string student_id = 1;
+}
+
+message UnifiedProfileResponse {
+  StudentResponse student = 1;
+  MasteryProfile mastery = 2;
+  ActivitySummary activity = 3;
+  repeated ErrorNote error_notes = 4;
+}
