@@ -111,6 +111,35 @@ class MockMCPManager:
                 ]
             }
 
+        # Error Review 관련 응답
+        if node == "q-dna" and tool == "get_question_dna":
+            return {
+                "question_id": params.get("question_id"),
+                "difficulty": "medium",
+                "concepts": ["이차함수", "최댓값", "도함수"],
+                "bloom_level": "apply"
+            }
+
+        if node == "error-note" and tool == "create_error_note":
+            import uuid
+            return {
+                "error_note_id": f"en_{uuid.uuid4().hex[:16]}",
+                "created_at": "2026-01-10T13:00:00",
+                "analysis": {
+                    "misconception": "이차함수의 최댓값 개념 혼동",
+                    "root_cause": "위로 볼록/아래로 볼록 판단 오류",
+                    "related_concepts": ["이차함수", "도함수", "극값"]
+                }
+            }
+
+        if node == "error-note" and tool == "calculate_anki_schedule":
+            from datetime import datetime, timedelta
+            return {
+                "next_review_date": (datetime.now() + timedelta(days=1)).isoformat(),
+                "interval_days": 1,
+                "ease_factor": 2.5
+            }
+
         return {"status": "mock_response"}
 
     def called(self, node: str, tool: str) -> bool:

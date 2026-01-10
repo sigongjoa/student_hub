@@ -15,6 +15,10 @@ from app.services.weekly_diagnostic_service import (
     WeeklyDiagnosticService,
     WeeklyDiagnosticRequest
 )
+from app.services.error_review_service import (
+    ErrorReviewService,
+    ErrorReviewRequest
+)
 from app.mcp.manager import MCPClientManager
 from app.db.session import get_db_session
 
@@ -75,8 +79,37 @@ class WorkflowServiceServicer(student_hub_pb2_grpc.WorkflowServiceServicer):
         request: workflows_pb2.ErrorReviewRequest,
         context: grpc.aio.ServicerContext
     ) -> workflows_pb2.ErrorReviewResponse:
-        """오답 복습 워크플로우 시작 (향후 구현)"""
-        await context.abort(grpc.StatusCode.UNIMPLEMENTED, "Not implemented yet")
+        """오답 복습 워크플로우 시작"""
+        try:
+            logger.info(f"StartErrorReview called for student {request.student_id}, question {request.question_id}")
+
+            async with get_db_session() as db:
+                service = ErrorReviewService(self.mcp, db)
+
+                service_request = ErrorReviewRequest(
+                    student_id=request.student_id,
+                    question_id=request.question_id,
+                    student_answer=request.student_answer,
+                    correct_answer=request.correct_answer
+                )
+
+                result = await service.start_error_review(service_request)
+
+                # Protobuf 메시지로 변환
+                return workflows_pb2.ErrorReviewResponse(
+                    error_note_id=result.error_note_id,
+                    next_review_date=result.next_review_date.isoformat(),
+                    anki_interval_days=result.anki_interval_days,
+                    analysis=workflows_pb2.ErrorAnalysis(
+                        misconception=result.analysis.misconception,
+                        root_cause=result.analysis.root_cause,
+                        related_concepts=result.analysis.related_concepts
+                    )
+                )
+
+        except Exception as e:
+            logger.error(f"StartErrorReview failed: {e}", exc_info=True)
+            await context.abort(grpc.StatusCode.INTERNAL, str(e))
 
     async def GenerateLearningPath(
         self,
