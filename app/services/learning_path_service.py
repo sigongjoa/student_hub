@@ -230,35 +230,37 @@ class LearningPathService:
         전체 학습 시간을 지정된 날짜 수에 맞게 분배합니다.
         하루 최대 5시간을 넘지 않도록 조정합니다.
         """
-        total_hours = sum(node.estimated_hours for node in path_nodes)
-        hours_per_day = total_hours / total_days
-
         daily_tasks = {}
         current_day = 1
-        remaining_hours = 0.0
+        day_hours = 0
 
         for node in path_nodes:
-            concept_hours = node.estimated_hours + remaining_hours
+            concept_hours = node.estimated_hours
 
-            while concept_hours > 0 and current_day <= total_days:
-                # 하루에 할당할 시간 계산 (최대 5시간)
-                daily_allocation = min(concept_hours, 5.0, hours_per_day)
+            while concept_hours > 0:
+                if current_day > total_days:
+                    # 날짜 초과 시 마지막 날에 추가
+                    day_key = f"Day {total_days}"
+                    daily_tasks[day_key] = daily_tasks.get(day_key, 0) + concept_hours
+                    break
+
+                # 현재 날에 남은 용량
+                remaining_capacity = 5 - day_hours
+
+                if remaining_capacity <= 0:
+                    # 현재 날이 가득 찼으면 다음 날로
+                    current_day += 1
+                    day_hours = 0
+                    continue
+
+                # 할당할 시간 계산
+                allocation = min(concept_hours, remaining_capacity)
 
                 day_key = f"Day {current_day}"
-                daily_tasks[day_key] = daily_tasks.get(day_key, 0) + int(daily_allocation)
+                daily_tasks[day_key] = daily_tasks.get(day_key, 0) + int(allocation)
 
-                concept_hours -= daily_allocation
-
-                # 하루 목표 달성 시 다음 날로
-                if daily_tasks.get(day_key, 0) >= hours_per_day:
-                    current_day += 1
-
-            remaining_hours = concept_hours
-
-        # 남은 시간을 마지막 날에 추가
-        if remaining_hours > 0 and current_day <= total_days:
-            day_key = f"Day {current_day}"
-            daily_tasks[day_key] = daily_tasks.get(day_key, 0) + int(remaining_hours)
+                concept_hours -= allocation
+                day_hours += allocation
 
         return daily_tasks
 
