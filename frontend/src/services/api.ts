@@ -17,10 +17,7 @@ export const api = {
 
     // Profiles
     getUnifiedProfile: async (studentId: string) => {
-        const response = await apiClient.post<UnifiedProfile>('/profiles/unified', {
-            student_id: studentId,
-            include_sections: ["basic", "mastery", "activities", "reports"]
-        });
+        const response = await apiClient.get<UnifiedProfile>(`/students/${studentId}/unified-profile`);
         return response.data;
     },
 

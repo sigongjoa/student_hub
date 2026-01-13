@@ -2,8 +2,8 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import student_hub_pb2 as student__hub__pb2
-import workflows_pb2 as workflows__pb2
+from . import student_hub_pb2 as student__hub__pb2
+from . import workflows_pb2 as workflows__pb2
 
 
 class StudentHubServiceStub(object):

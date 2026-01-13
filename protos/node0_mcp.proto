@@ -1,0 +1,120 @@
+// node0_mcp.proto
+// Node 0 MCP Server Protocol Definitions
+syntax = "proto3";
+
+package node0;
+
+// Node 0 MCP Service
+// Provides 5 built-in educational workflow tools
+service Node0MCPService {
+  // Tool Execution
+  rpc ExecuteTool(ToolRequest) returns (ToolResponse);
+
+  // Tool Discovery
+  rpc ListTools(ListToolsRequest) returns (ListToolsResponse);
+
+  // Custom Tool Management
+  rpc CreateCustomTool(CreateCustomToolRequest) returns (CustomTool);
+  rpc GetCustomTool(GetCustomToolRequest) returns (CustomTool);
+  rpc ListCustomTools(ListCustomToolsRequest) returns (ListCustomToolsResponse);
+
+  // Workflow Template Management
+  rpc CreateWorkflowTemplate(CreateWorkflowTemplateRequest) returns (WorkflowTemplate);
+  rpc ExecuteWorkflowTemplate(ExecuteWorkflowTemplateRequest) returns (stream WorkflowExecutionEvent);
+}
+
+// ==================== Tool Execution ====================
+
+message ToolRequest {
+  string tool_name = 1;
+  map<string, string> arguments = 2;
+  string session_id = 3;
+}
+
+message ToolResponse {
+  bool success = 1;
+  string result = 2;  // JSON serialized
+  string error = 3;
+  map<string, string> metadata = 4;
+}
+
+// ==================== Tool Discovery ====================
+
+message ListToolsRequest {}
+
+message ListToolsResponse {
+  repeated Tool tools = 1;
+}
+
+message Tool {
+  string name = 1;
+  string description = 2;
+  string input_schema = 3;  // JSON schema
+}
+
+// ==================== Custom Tools ====================
+
+message CreateCustomToolRequest {
+  string name = 1;
+  string description = 2;
+  string input_schema = 3;  // JSON schema
+  string definition = 4;  // JSON serialized CustomToolDefinition
+  string created_by = 5;
+}
+
+message GetCustomToolRequest {
+  string tool_id = 1;
+}
+
+message ListCustomToolsRequest {
+  bool include_inactive = 1;
+}
+
+message ListCustomToolsResponse {
+  repeated CustomTool custom_tools = 1;
+}
+
+message CustomTool {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string input_schema = 4;
+  string definition = 5;  // JSON serialized
+  string created_by = 6;
+  int64 created_at = 7;
+  bool is_active = 8;
+}
+
+// ==================== Workflow Templates ====================
+
+message CreateWorkflowTemplateRequest {
+  string name = 1;
+  string description = 2;
+  string definition = 3;  // JSON serialized WorkflowTemplate
+  string created_by = 4;
+  bool is_public = 5;
+}
+
+message ExecuteWorkflowTemplateRequest {
+  string template_id = 1;
+  map<string, string> input_variables = 2;
+  string session_id = 3;
+}
+
+message WorkflowTemplate {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string definition = 4;  // JSON serialized
+  string created_by = 5;
+  int64 created_at = 6;
+  bool is_public = 7;
+  bool is_active = 8;
+}
+
+message WorkflowExecutionEvent {
+  string event_type = 1;  // started, node_completed, completed, error
+  string node_id = 2;
+  string data = 3;  // JSON serialized
+  int64 timestamp = 4;
+}

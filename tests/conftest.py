@@ -17,7 +17,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.db.base import Base
 from app.config import settings
 from app.models.student import Student
+from app.models.conversation import Conversation, Message
+from app.models.workflow_template import WorkflowTemplate
+from app.models.custom_tool import CustomTool
 from app.models.workflow_session import WorkflowSession
+from app.models.student_attempt import StudentAttempt
 
 
 # Event Loop Fixture

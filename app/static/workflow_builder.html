@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Builder - Student Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        /* 왼쪽 도구 패널 */
+        .tools-panel {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            overflow-y: auto;
+        }
+        
+        .panel-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .panel-header h2 {
+            font-size: 18px;
+            color: #1e293b;
+        }
+        
+        .tool-category {
+            padding: 15px 20px;
+        }
+        
+        .category-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        
+        .tool-item {
+            padding: 12px 15px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: move;
+            transition: all 0.2s;
+        }
+        
+        .tool-item:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            transform: translateX(5px);
+        }
+        
+        .tool-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        
+        .tool-desc {
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        /* 중앙 캔버스 */
+        .canvas-area {
+            flex: 1;
+            position: relative;
+            overflow: auto;
+        }
+        
+        .canvas {
+            min-width: 2000px;
+            min-height: 2000px;
+            background-image: 
+                linear-gradient(#e2e8f0 1px, transparent 1px),
+                linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+            position: relative;
+        }
+        
+        .workflow-node {
+            position: absolute;
+            width: 220px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            cursor: move;
+            transition: all 0.2s;
+        }
+        
+        .workflow-node:hover {
+            border-color: #667eea;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+        }
+        
+        .workflow-node.selected {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        
+        .node-header {
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .node-body {
+            padding: 15px;
+        }
+        
+        .node-field {
+            margin-bottom: 12px;
+        }
+        
+        .node-field label {
+            display: block;
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        
+        .node-field input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        
+        .node-actions {
+            display: flex;
+            gap: 8px;
+            padding: 10px 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .node-btn {
+            flex: 1;
+            padding: 6px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-delete {
+            background: #fee;
+            color: #dc2626;
+        }
+        
+        .btn-delete:hover {
+            background: #fcc;
+        }
+        
+        /* 오른쪽 설정 패널 */
+        .settings-panel {
+            width: 320px;
+            background: white;
+            border-left: 1px solid #e2e8f0;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .settings-section {
+            margin-bottom: 25px;
+        }
+        
+        .settings-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
+        
+        .settings-field {
+            margin-bottom: 15px;
+        }
+        
+        .settings-field label {
+            display: block;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+        
+        .settings-field input,
+        .settings-field textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .settings-field textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+        
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        
+        /* 상단 툴바 */
+        .toolbar {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 12px;
+            z-index: 100;
+        }
+        
+        .toolbar-btn {
+            padding: 8px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .toolbar-btn:hover {
+            background: #f8fafc;
+            border-color: #667eea;
+        }
+        
+        .status-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #10b981;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        
+        .status-message.show {
+            opacity: 1;
+        }
+        
+        .status-message.error {
+            background: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 왼쪽 도구 패널 -->
+        <div class="tools-panel">
+            <div class="panel-header">
+                <h2>🛠️ 도구 목록</h2>
+            </div>
+            
+            <div class="tool-category">
+                <div class="category-title">Built-in Tools</div>
+                
+                <div class="tool-item" draggable="true" data-tool="analyze_student_weaknesses">
+                    <div class="tool-name">약점 분석</div>
+                    <div class="tool-desc">학생의 약점 개념 분석</div>
+                </div>
+                
+                <div class="tool-item" draggable="true" data-tool="create_error_review">
+                    <div class="tool-name">오답 복습</div>
+                    <div class="tool-desc">오답노트 생성 및 복습</div>
+                </div>
+                
+                <div class="tool-item" draggable="true" data-tool="generate_learning_path">
+                    <div class="tool-name">학습 경로</div>
+                    <div class="tool-desc">개인화 학습 경로 생성</div>
+                </div>
+                
+                <div class="tool-item" draggable="true" data-tool="prepare_exam">
+                    <div class="tool-name">시험 준비</div>
+                    <div class="tool-desc">시험 문제 및 계획 생성</div>
+                </div>
+                
+                <div class="tool-item" draggable="true" data-tool="get_student_profile">
+                    <div class="tool-name">학생 프로필</div>
+                    <div class="tool-desc">학생 정보 조회</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 중앙 캔버스 -->
+        <div class="canvas-area">
+            <div class="toolbar">
+                <button class="toolbar-btn" onclick="clearCanvas()">🗑️ 초기화</button>
+                <button class="toolbar-btn" onclick="saveTemplate()">💾 저장</button>
+                <button class="toolbar-btn" onclick="loadTemplate()">📂 불러오기</button>
+                <button class="toolbar-btn" onclick="executeWorkflow()">▶️ 실행</button>
+            </div>
+            
+            <div class="canvas" id="canvas"></div>
+        </div>
+        
+        <!-- 오른쪽 설정 패널 -->
+        <div class="settings-panel">
+            <div class="settings-section">
+                <div class="settings-title">📋 워크플로우 정보</div>
+                
+                <div class="settings-field">
+                    <label>템플릿 이름</label>
+                    <input type="text" id="template-name" placeholder="예: 학생 약점 분석 워크플로우">
+                </div>
+                
+                <div class="settings-field">
+                    <label>설명</label>
+                    <textarea id="template-desc" placeholder="이 워크플로우의 목적을 설명하세요..."></textarea>
+                </div>
+                
+                <div class="settings-field">
+                    <label>
+                        <input type="checkbox" id="template-public"> 공개 템플릿
+                    </label>
+                </div>
+            </div>
+            
+            <div class="settings-section" id="node-settings" style="display: none;">
+                <div class="settings-title">⚙️ 노드 설정</div>
+                <div id="node-config"></div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="loadTemplatesList()">템플릿 목록</button>
+                <button class="btn btn-primary" onclick="saveTemplate()">저장</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="status-message" id="status-message"></div>
+    
+    <script>
+        let nodes = [];
+        let selectedNode = null;
+        let draggedNode = null;
+        let nodeCounter = 0;
+        
+        const canvas = document.getElementById('canvas');
+        
+        // 도구 드래그 시작
+        document.querySelectorAll('.tool-item').forEach(tool => {
+            tool.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('tool', e.target.dataset.tool);
+            });
+        });
+        
+        // 캔버스 드롭
+        canvas.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+        
+        canvas.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const toolName = e.dataTransfer.getData('tool');
+            if (toolName) {
+                createNode(toolName, e.clientX, e.clientY);
+            }
+        });
+        
+        // 노드 생성
+        function createNode(toolName, x, y) {
+            const nodeId = `node${++nodeCounter}`;
+            const node = {
+                id: nodeId,
+                type: 'tool',
+                tool_name: toolName,
+                config: {},
+                position: { x: x - 300, y: y - 100 }
+            };
+            
+            nodes.push(node);
+            renderNode(node);
+            showStatus('노드가 추가되었습니다');
+        }
+        
+        // 노드 렌더링
+        function renderNode(node) {
+            const nodeEl = document.createElement('div');
+            nodeEl.className = 'workflow-node';
+            nodeEl.id = node.id;
+            nodeEl.style.left = node.position.x + 'px';
+            nodeEl.style.top = node.position.y + 'px';
+            
+            const toolDisplay = node.tool_name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            
+            nodeEl.innerHTML = `
+                <div class="node-header">${toolDisplay}</div>
+                <div class="node-body">
+                    <div class="node-field">
+                        <label>Node ID</label>
+                        <input type="text" value="${node.id}" readonly>
+                    </div>
+                </div>
+                <div class="node-actions">
+                    <button class="node-btn btn-delete" onclick="deleteNode('${node.id}')">삭제</button>
+                </div>
+            `;
+            
+            nodeEl.addEventListener('click', () => selectNode(node.id));
+            nodeEl.addEventListener('mousedown', startDrag);
+            
+            canvas.appendChild(nodeEl);
+        }
+        
+        // 노드 드래그
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+        
+        function startDrag(e) {
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+            
+            isDragging = true;
+            draggedNode = e.currentTarget;
+            const rect = draggedNode.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+        
+        function drag(e) {
+            if (!isDragging) return;
+            
+            const canvasRect = canvas.getBoundingClientRect();
+            const x = e.clientX - canvasRect.left - dragOffset.x;
+            const y = e.clientY - canvasRect.top - dragOffset.y;
+            
+            draggedNode.style.left = x + 'px';
+            draggedNode.style.top = y + 'px';
+            
+            // 노드 위치 업데이트
+            const node = nodes.find(n => n.id === draggedNode.id);
+            if (node) {
+                node.position = { x, y };
+            }
+        }
+        
+        function stopDrag() {
+            isDragging = false;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+        
+        // 노드 선택
+        function selectNode(nodeId) {
+            document.querySelectorAll('.workflow-node').forEach(n => n.classList.remove('selected'));
+            document.getElementById(nodeId).classList.add('selected');
+            
+            selectedNode = nodes.find(n => n.id === nodeId);
+            showNodeSettings(selectedNode);
+        }
+        
+        // 노드 설정 표시
+        function showNodeSettings(node) {
+            const settingsEl = document.getElementById('node-settings');
+            const configEl = document.getElementById('node-config');
+            
+            configEl.innerHTML = `
+                <div class="settings-field">
+                    <label>Node ID</label>
+                    <input type="text" value="${node.id}" readonly>
+                </div>
+                <div class="settings-field">
+                    <label>Tool Name</label>
+                    <input type="text" value="${node.tool_name}" readonly>
+                </div>
+                <div class="settings-field">
+                    <label>Configuration (JSON)</label>
+                    <textarea id="node-config-json">${JSON.stringify(node.config, null, 2)}</textarea>
+                </div>
+                <button class="btn btn-primary" onclick="updateNodeConfig()">설정 저장</button>
+            `;
+            
+            settingsEl.style.display = 'block';
+        }
+        
+        // 노드 설정 업데이트
+        function updateNodeConfig() {
+            if (!selectedNode) return;
+            
+            try {
+                const configJson = document.getElementById('node-config-json').value;
+                selectedNode.config = JSON.parse(configJson);
+                showStatus('노드 설정이 업데이트되었습니다');
+            } catch (e) {
+                showStatus('잘못된 JSON 형식입니다', true);
+            }
+        }
+        
+        // 노드 삭제
+        function deleteNode(nodeId) {
+            nodes = nodes.filter(n => n.id !== nodeId);
+            document.getElementById(nodeId).remove();
+            
+            if (selectedNode && selectedNode.id === nodeId) {
+                selectedNode = null;
+                document.getElementById('node-settings').style.display = 'none';
+            }
+            
+            showStatus('노드가 삭제되었습니다');
+        }
+        
+        // 캔버스 초기화
+        function clearCanvas() {
+            if (!confirm('모든 노드를 삭제하시겠습니까?')) return;
+            
+            nodes = [];
+            canvas.innerHTML = '';
+            selectedNode = null;
+            document.getElementById('node-settings').style.display = 'none';
+            showStatus('캔버스가 초기화되었습니다');
+        }
+        
+        // 템플릿 저장
+        async function saveTemplate() {
+            const name = document.getElementById('template-name').value;
+            const description = document.getElementById('template-desc').value;
+            const isPublic = document.getElementById('template-public').checked;
+            
+            if (!name) {
+                showStatus('템플릿 이름을 입력하세요', true);
+                return;
+            }
+            
+            if (nodes.length === 0) {
+                showStatus('노드를 추가하세요', true);
+                return;
+            }
+            
+            const template = {
+                name,
+                description,
+                is_public: isPublic,
+                definition: {
+                    nodes: nodes.map(n => ({
+                        id: n.id,
+                        type: n.type,
+                        tool_name: n.tool_name,
+                        config: n.config
+                    })),
+                    edges: []  // 간단한 버전에서는 엣지 생략
+                }
+            };
+            
+            try {
+                const response = await fetch('/api/v1/workflows/templates/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(template)
+                });
+                
+                if (!response.ok) throw new Error('저장 실패');
+                
+                const result = await response.json();
+                showStatus(`템플릿이 저장되었습니다 (ID: ${result.id})`);
+            } catch (e) {
+                showStatus('템플릿 저장 중 오류가 발생했습니다', true);
+            }
+        }
+        
+        // 템플릿 목록 불러오기
+        async function loadTemplatesList() {
+            try {
+                const response = await fetch('/api/v1/workflows/templates/');
+                const data = await response.json();
+                
+                if (data.templates.length === 0) {
+                    showStatus('저장된 템플릿이 없습니다');
+                    return;
+                }
+                
+                const templateId = prompt('템플릿 ID를 입력하세요:\n\n' + 
+                    data.templates.map(t => `${t.id}: ${t.name}`).join('\n'));
+                
+                if (templateId) {
+                    await loadTemplateById(templateId);
+                }
+            } catch (e) {
+                showStatus('템플릿 목록을 불러올 수 없습니다', true);
+            }
+        }
+        
+        // 템플릿 불러오기
+        async function loadTemplateById(templateId) {
+            try {
+                const response = await fetch(`/api/v1/workflows/templates/${templateId}`);
+                const template = await response.json();
+                
+                // 캔버스 초기화
+                nodes = [];
+                canvas.innerHTML = '';
+                
+                // 템플릿 정보 설정
+                document.getElementById('template-name').value = template.name;
+                document.getElementById('template-desc').value = template.description || '';
+                document.getElementById('template-public').checked = template.is_public;
+                
+                // 노드 복원
+                template.definition.nodes.forEach((node, index) => {
+                    const restoredNode = {
+                        ...node,
+                        position: node.position || { x: 100 + index * 250, y: 100 }
+                    };
+                    nodes.push(restoredNode);
+                    renderNode(restoredNode);
+                });
+                
+                showStatus('템플릿이 로드되었습니다');
+            } catch (e) {
+                showStatus('템플릿을 불러올 수 없습니다', true);
+            }
+        }
+        
+        // 워크플로우 실행
+        async function executeWorkflow() {
+            const name = document.getElementById('template-name').value;
+            
+            if (!name || nodes.length === 0) {
+                showStatus('워크플로우를 먼저 저장하세요', true);
+                return;
+            }
+            
+            // 입력 변수 요청
+            const inputVarsJson = prompt('입력 변수를 JSON 형식으로 입력하세요:\n예: {"student_id": "student_123"}');
+            let inputVars = {};
+            
+            if (inputVarsJson) {
+                try {
+                    inputVars = JSON.parse(inputVarsJson);
+                } catch (e) {
+                    showStatus('잘못된 JSON 형식입니다', true);
+                    return;
+                }
+            }
+            
+            // 임시로 템플릿 저장 후 실행
+            try {
+                // 1. 템플릿 저장
+                const saveResponse = await fetch('/api/v1/workflows/templates/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        description: document.getElementById('template-desc').value,
+                        is_public: false,
+                        definition: {
+                            nodes: nodes.map(n => ({
+                                id: n.id,
+                                type: n.type,
+                                tool_name: n.tool_name,
+                                config: n.config
+                            })),
+                            edges: []
+                        }
+                    })
+                });
+                
+                const savedTemplate = await saveResponse.json();
+                
+                // 2. 실행
+                const execResponse = await fetch(`/api/v1/workflows/templates/${savedTemplate.id}/execute`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input_variables: inputVars })
+                });
+                
+                const result = await execResponse.json();
+                
+                if (result.status === 'completed') {
+                    alert('실행 성공!\n\n' + JSON.stringify(result.outputs, null, 2));
+                    showStatus('워크플로우가 성공적으로 실행되었습니다');
+                } else {
+                    alert('실행 실패: ' + result.error);
+                    showStatus('워크플로우 실행 중 오류가 발생했습니다', true);
+                }
+            } catch (e) {
+                showStatus('워크플로우 실행 중 오류가 발생했습니다', true);
+            }
+        }
+        
+        // 상태 메시지 표시
+        function showStatus(message, isError = false) {
+            const statusEl = document.getElementById('status-message');
+            statusEl.textContent = message;
+            statusEl.className = 'status-message show' + (isError ? ' error' : '');
+            
+            setTimeout(() => {
+                statusEl.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

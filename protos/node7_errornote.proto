@@ -1,0 +1,116 @@
+// node7_errornote.proto
+// Error Note MCP Server - Error Analysis & Anki Scheduling
+syntax = "proto3";
+
+package node7;
+
+service ErrorNoteService {
+  // Create error note
+  rpc CreateErrorNote(CreateErrorNoteRequest) returns (CreateErrorNoteResponse);
+  
+  // Get error note
+  rpc GetErrorNote(GetErrorNoteRequest) returns (GetErrorNoteResponse);
+  
+  // List error notes by student
+  rpc ListErrorNotesByStudent(ListErrorNotesByStudentRequest) returns (ListErrorNotesByStudentResponse);
+  
+  // Calculate Anki schedule
+  rpc CalculateAnkiSchedule(CalculateAnkiScheduleRequest) returns (CalculateAnkiScheduleResponse);
+  
+  // Get due reviews
+  rpc GetDueReviews(GetDueReviewsRequest) returns (GetDueReviewsResponse);
+  
+  // Delete error note
+  rpc DeleteErrorNote(DeleteErrorNoteRequest) returns (DeleteErrorNoteResponse);
+}
+
+// ==================== Create Error Note ====================
+
+message CreateErrorNoteRequest {
+  string student_id = 1;
+  string question_id = 2;
+  string student_answer = 3;
+  string correct_answer = 4;
+}
+
+message CreateErrorNoteResponse {
+  string id = 1;
+  string created_at = 2;
+  ErrorAnalysis analysis = 3;
+  AnkiData anki_data = 4;
+}
+
+message ErrorAnalysis {
+  string misconception = 1;
+  string root_cause = 2;
+  repeated string related_concepts = 3;
+}
+
+message AnkiData {
+  double ease_factor = 1;
+  int32 interval_days = 2;
+  int32 repetitions = 3;
+  string next_review = 4;
+}
+
+// ==================== Get Error Note ====================
+
+message GetErrorNoteRequest {
+  string error_note_id = 1;
+}
+
+message GetErrorNoteResponse {
+  string id = 1;
+  string student_id = 2;
+  string question_id = 3;
+  string student_answer = 4;
+  string correct_answer = 5;
+  string created_at = 6;
+  ErrorAnalysis analysis = 7;
+  AnkiData anki_data = 8;
+}
+
+// ==================== List Error Notes ====================
+
+message ListErrorNotesByStudentRequest {
+  string student_id = 1;
+}
+
+message ListErrorNotesByStudentResponse {
+  repeated GetErrorNoteResponse error_notes = 1;
+}
+
+// ==================== Calculate Anki Schedule ====================
+
+message CalculateAnkiScheduleRequest {
+  string error_note_id = 1;
+  int32 quality = 2;  // 0-5 (Anki quality rating)
+}
+
+message CalculateAnkiScheduleResponse {
+  double ease_factor = 1;
+  int32 interval_days = 2;
+  string next_review_date = 3;
+}
+
+// ==================== Get Due Reviews ====================
+
+message GetDueReviewsRequest {
+  string student_id = 1;
+  string date = 2;  // ISO format
+}
+
+message GetDueReviewsResponse {
+  repeated GetErrorNoteResponse due_notes = 1;
+}
+
+// ==================== Delete Error Note ====================
+
+message DeleteErrorNoteRequest {
+  string error_note_id = 1;
+}
+
+message DeleteErrorNoteResponse {
+  bool success = 1;
+  string message = 2;
+}

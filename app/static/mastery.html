@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개념 숙련도</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .mastery-display {
+            margin: 30px 0;
+        }
+        .mastery-label {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .mastery-bar {
+            height: 40px;
+            background: #e0e0e0;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        .mastery-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #81C784);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mastery-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+        }
+        .error {
+            color: #f44336;
+            padding: 20px;
+            background: #ffebee;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>숙련도</h1>
+        <div id="content" class="loading">로딩 중...</div>
+    </div>
+
+    <script>
+        async function loadMastery() {
+            const pathParts = window.location.pathname.split('/');
+            const studentId = pathParts[2];
+            const concept = decodeURIComponent(pathParts[3]);
+
+            try {
+                const response = await fetch(`/api/mastery/calculate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        student_id: studentId,
+                        concept: concept
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load mastery data');
+                }
+
+                const data = await response.json();
+                const masteryPercent = (data.mastery * 100).toFixed(1);
+
+                document.getElementById('content').innerHTML = `
+                    <div class="mastery-display">
+                        <div class="mastery-label">학생: ${studentId}</div>
+                        <div class="mastery-label">개념: ${concept}</div>
+                        <div class="mastery-bar">
+                            <div class="mastery-fill" style="width: ${masteryPercent}%"></div>
+                        </div>
+                        <div class="mastery-value" data-testid="mastery-value">${masteryPercent}%</div>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('content').innerHTML = `
+                    <div class="error" data-testid="error-message">
+                        에러: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        window.addEventListener('load', loadMastery);
+    </script>
+</body>
+</html>

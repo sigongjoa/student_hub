@@ -1,0 +1,84 @@
+// node2_qdna.proto
+// Q-DNA MCP Server - Question DNA & Mastery Analysis
+syntax = "proto3";
+
+package node2;
+
+service QDNAService {
+  // Get student mastery for concepts (BKT-based)
+  rpc GetStudentMastery(GetStudentMasteryRequest) returns (GetStudentMasteryResponse);
+  
+  // Recommend questions based on IRT
+  rpc RecommendQuestions(RecommendQuestionsRequest) returns (RecommendQuestionsResponse);
+  
+  // Get question DNA (difficulty, concepts, Bloom level)
+  rpc GetQuestionDNA(GetQuestionDNARequest) returns (GetQuestionDNAResponse);
+  
+  // Estimate learning time
+  rpc EstimateLearningTime(EstimateLearningTimeRequest) returns (EstimateLearningTimeResponse);
+}
+
+// ==================== Get Student Mastery ====================
+
+message GetStudentMasteryRequest {
+  string student_id = 1;
+  repeated string concepts = 2;  // Optional: specific concepts to query
+  repeated string skill_ids = 3; // Alias for concepts (compatibility)
+}
+
+message GetStudentMasteryResponse {
+  map<string, double> mastery = 1;  // concept -> mastery score (0.0 - 1.0)
+}
+
+// ==================== Recommend Questions ====================
+
+message RecommendQuestionsRequest {
+  string student_id = 1;
+  string concept = 2;  // Optional: single concept
+  string difficulty = 3;  // easy, medium, hard
+  int32 count = 4;
+  string curriculum_path = 5;  // Optional: filter by curriculum
+  repeated string weak_concepts = 6;  // Optional: focus on weak concepts
+  double weak_ratio = 7;  // Ratio of weak concept questions (0.0 - 1.0)
+}
+
+message RecommendQuestionsResponse {
+  repeated Question questions = 1;
+  string student_id = 2;
+  int32 count = 3;
+}
+
+message Question {
+  string id = 1;
+  string content = 2;
+  string difficulty = 3;
+  repeated string concepts = 4;
+  int32 estimated_time_minutes = 5;
+}
+
+// ==================== Get Question DNA ====================
+
+message GetQuestionDNARequest {
+  string question_id = 1;
+}
+
+message GetQuestionDNAResponse {
+  string question_id = 1;
+  string difficulty = 2;
+  repeated string concepts = 3;
+  string bloom_level = 4;  // remember, understand, apply, analyze, evaluate, create
+}
+
+// ==================== Estimate Learning Time ====================
+
+message EstimateLearningTimeRequest {
+  string concept = 1;
+  double current_mastery = 2;
+  double target_mastery = 3;
+}
+
+message EstimateLearningTimeResponse {
+  string concept = 1;
+  int32 estimated_hours = 2;
+  double current_mastery = 3;
+}

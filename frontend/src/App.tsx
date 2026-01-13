@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Dashboard } from './pages/Dashboard';
 import { StudentList } from './pages/StudentList';
 import { StudentDetail } from './pages/StudentDetail';
+import { ChatPanel } from './features/chat/ChatPanel';
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,9 @@ function App() {
           <Route path="/lab" element={<Navigate to="/" />} />
           <Route path="/school" element={<Navigate to="/" />} />
         </Routes>
+
+        {/* Chat Panel - Always visible */}
+        <ChatPanel />
       </BrowserRouter>
     </QueryClientProvider>
   );
