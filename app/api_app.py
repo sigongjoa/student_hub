@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-from app.routers import mastery, attempts, workflows, chat, workflows_templates
+from app.routers import mastery, attempts, workflows, chat, workflows_templates, diagnosis
 
 # FastAPI 앱 생성
 app = FastAPI(
@@ -33,6 +33,7 @@ app.include_router(attempts.router)
 app.include_router(workflows.router)
 app.include_router(chat.router)  # Chat API (Conversational System)
 app.include_router(workflows_templates.router)  # Workflow Templates (Phase 3)
+app.include_router(diagnosis.router)  # Cognitive Diagnosis (Node4 → Node0 → Node2)
 
 # 정적 파일 경로
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
@@ -88,3 +89,9 @@ async def chat_test_page():
 async def workflow_builder_page():
     """Workflow Builder 페이지"""
     return FileResponse(os.path.join(STATIC_DIR, "workflow_builder.html"))
+
+
+@app.get("/diagnosis-events")
+async def diagnosis_events_page():
+    """인지 진단 이벤트 로그 페이지"""
+    return FileResponse(os.path.join(STATIC_DIR, "diagnosis_events.html"))
